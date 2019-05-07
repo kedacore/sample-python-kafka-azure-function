@@ -1,0 +1,12 @@
+{
+  "bindings": [
+    {
+      "type": "kafkaTrigger",
+      "direction": "in",
+      "name": "kevent",
+      "topic": "twitter",
+      "brokerList": "kafka-cp-kafka-headless.default.svc.cluster.local:9092",
+      "consumerGroup": "functions"
+    }
+  ]
+}
