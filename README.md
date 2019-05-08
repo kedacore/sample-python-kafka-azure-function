@@ -18,6 +18,7 @@ The below will walk you through creating a Kafka topic within your function, pub
 ```cli
 git clone https://github.com/kedacore/sample-python-kafka-azure-function
 cd sample-python-kafka-azure-function
+func extensions install
 ```
 
 ### Create a Kafka topic in your cluster
