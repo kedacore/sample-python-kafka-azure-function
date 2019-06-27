@@ -1,6 +1,8 @@
 # Sample tweet processor (Azure Functions + Kafka)
 
-The following sample includes an Azure Function (written in Python) that triggers as messages arrive at a local Kafka topic.  The Kafka topic is being populated by tweets.  As the function triggers, it will populate a real-time Power BI dashboard (optional) with information on the tweet sentiment.
+The following sample includes an Azure Function (written in Python) that triggers as messages arrive at a local Kafka topic.  
+
+The Kafka topic is being populated by tweets and as the function triggers, it will populate a real-time Power BI dashboard (optional) with information on the tweet sentiment.
 
 ## Pre-requisites
 
@@ -14,7 +16,9 @@ The following components are necessary for this tutorial:
 You will need the Kubernetes cluster to deploy the local Kafka cluster where the tweets are published to. KEDA as well as the Azure Function runtime will also be installed on this Kubernetes cluster as well.
 
 ## Objective of Sample 
-The objective of this sample is to demonstrate how to horizontally scale Azure function instances (pods) running on a Kubernetes cluster based on the number of tweets available at the target Kafka topic. The objective of the tutorial is not for demonstrating how to scale the Kafka cluster. If you already have a running Kafka cluster, you can specify the parameters for that cluster instead and skip the deployment of the Kafka cluster components from the Confluent Helm chart.
+The objective of this sample is to demonstrate how to horizontally scale Azure function instances (pods) running on a Kubernetes cluster based on the number of tweets available at the target Kafka topic. The objective of the tutorial is not for demonstrating how to scale the Kafka cluster. 
+
+If you already have a running Kafka cluster, you can specify the parameters for that cluster instead and skip the deployment of the Kafka cluster components from the Confluent Helm chart.
 
 ## Setup
 
