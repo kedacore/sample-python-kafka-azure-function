@@ -1,14 +1,24 @@
 # Sample tweet processor (Azure Functions + Kafka)
 
-The following sample includes an Azure Function (written in Python) that triggers on changes to a local Kafka topic.  The Kafka topic is being populated by tweets.  As the function triggers, it will populate a real-time Power BI dashboard (optional) with information on the tweet sentiment.
+The following sample includes an Azure Function (written in Python) that triggers as messages arrive at a local Kafka topic.  
+
+The Kafka topic is being populated by tweets and as the function triggers, it will populate a real-time Power BI dashboard (optional) with information on the tweet sentiment.
 
 ## Pre-requisites
 
+The following components are necessary for this tutorial:
 * Docker installed
 * Kubernetes cluster
 * KEDA installed on the cluster
 * [Azure Functions core tools](https://github.com/azure/azure-functions-core-tools#installing)
 * A [registered twitter application](https://developer.twitter.com/apps) with associated consumer key + secret and access token + secret
+
+You will need the Kubernetes cluster to deploy the local Kafka cluster where the tweets are published to. KEDA as well as the Azure Function runtime will also be installed on this Kubernetes cluster as well.
+
+## Objective of Sample 
+The objective of this sample is to demonstrate how to horizontally scale Azure function instances (pods) running on a Kubernetes cluster based on the number of tweets available at the target Kafka topic. The objective of the tutorial is not for demonstrating how to scale the Kafka cluster. 
+
+If you already have a running Kafka cluster, you can specify the parameters for that cluster instead and skip the deployment of the Kafka cluster components from the Confluent Helm chart.
 
 ## Setup
 
@@ -26,29 +36,51 @@ func extensions install
 #### [Install helm](https://helm.sh/docs/using_helm/)
 
 #### Add the confluent helm repo
+
+This step makes the Confluent repo available from your local Helm installation
+
 ```cli
 helm repo add confluentinc https://confluentinc.github.io/cp-helm-charts/
 helm repo update
 ```
 
 #### Deploy the Confluent Kafka helm chart
+
+The Confluent Helm chart contains the following 7 components necessary to spin up a Kafka cluster:
+- cp-control-center (used for monitoring and management by developers and operations teams)
+- cp-kafka-connect (used for pushing data to and pull data out of kafka brokers)
+- cp-kafka-rest (provides universal access to Kafka cluster from any network connected device via HTTP)
+- cp-kafka (kafka brokers where data is stored)
+- cp-ksql-server (provides capabilities for stream processing against Kafka brokers using SQL-like semantics)
+- cp-schema-registry (provides a central registry for the format of Kafka data to guarantee compatibility)
+- cp-zookeeper (a centralized service providing a hierarchical key-value store for managing cluster metadata)
+
+Your installation disables the schema registry, rest proxy and connect components but enables the remaining components listed above
+
 ```cli
 helm install --name kafka --set cp-schema-registry.enabled=false,cp-kafka-rest.enabled=false,cp-kafka-connect.enabled=false,dataLogDirStorageClass=default,dataDirStorageClass=default,storageClass=default confluentinc/cp-helm-charts
 ```
-
 You'll need to wait for the deployment to complete before continuing.  This may take a few minutes to spin up all the stateful sets.
 
 #### Deploy a kafka client pod with configuration
+
+This is the client that will push data into the Kafka cluster
+
 ```cli
 kubectl apply -f deploy/kafka-client.yaml
 ```
-
 #### Log into the Kafka client
+
+Connect to the Kafka client pod using bash
+
 ```cli
 kubectl exec -it kafka-client -- /bin/bash
 ```
 
 #### Create a kafka topic
+
+Create a local Kafka topic that the messages will be published to. As messages arrive at this topic, the KEDA platform will scale the azure function instances accordingly.
+
 ```cli
 kafka-topics --zookeeper kafka-cp-zookeeper-headless:2181 --topic twitter --create --partitions 5 --replication-factor 1 --if-not-exists
 
@@ -128,7 +160,7 @@ info: Host.Triggers.Kafka[0]
 
 ## Clean up resources
 
-You can run the following to clean up resources created as part of this sample:
+Once you are done with the tutorial, you can run the following commands to clean up resources created as part of this sample:
 
 ```cli
 kubectl delete deploy/twitter-to-kafka-deployment
